@@ -3,26 +3,27 @@ from PIL import Image
 import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
-from torchvision import transformers
+from torchvision import transforms
 import matplotlib.pyplot as plt
 
 
 class H2Dataset(Dataset):
-    def __init__(self, dataset_folder, list_file, transform=None)
+    def __init__(self, dataset_folder, list_file, transform=None):
         self.dataset_folder = dataset_folder
         self.transform = transform
 
         # load list of images (train.txt or test.txt)
         list_path = os.path.join(dataset_folder, list_file)
-        with open(list_file, "r") as f:
+        with open(list_path, "r") as f:
             self.image_list = [line.strip() for line in f.readlines()]
         
         # get class names (read folder from image name)
         class_names = []
         for img_name in self.image_list:
-            folder_name = img_name.split('.')[0]
+            folder_name = img_name.split('_')[0]
             if folder_name not in class_names:
                 class_names.append(folder_name)
+        self.classes = sorted(class_names)
 
         # create a class map from name to numeric index
         self.class_to_idx = {}
@@ -34,9 +35,11 @@ class H2Dataset(Dataset):
 
     def __getitem__(self, idx):
         # obtain path to the image
-        rel_path = self.image_list[idx]
-        class_name, filename = rel_path.split('.', 1)
+        filename = self.image_list[idx]
+        class_name = filename.split('_')[0]
         img_path = os.path.join(self.dataset_folder, class_name, filename)
+        
+        # print(f"Reading image: {img_path})
 
         # open the image
         image = Image.open(img_path).convert("RGB")
@@ -44,13 +47,13 @@ class H2Dataset(Dataset):
 
         # apply any transforms
         if self.transform:
-            image - self.transform(image)
+            image = self.transform(image)
         
         return image, label
         
 
 class SimpleCNN(nn.Module):
-    def __init__(self)
+    def __init__(self, num_classes=4):
         super().__init__()
 
         # define CNN feature extractor
@@ -74,7 +77,7 @@ class SimpleCNN(nn.Module):
         # define CNN fully connected layer
         self.classifier = nn.Sequential(
             nn.Flatten(),
-            nn.Linear(128 * 12 * 12, 256),  # assuming input 96x96
+            nn.Linear(128 * 8 * 8, 256),  # new, CORRECT
             nn.ReLU(),
             nn.Dropout(0.3),
             nn.Linear(256, num_classes)
@@ -161,26 +164,26 @@ def evaluate(model, data_loader, device):
 if __name__ == "__main__":
     # configure hyperparameters
     dataset_folder = "h2-data"
-    batch_size = 32
+    batch_size = 16
     num_epochs = 10
     learning_rate = 0.001
 
     # configure transforms
     transform = transforms.Compose([
-        transform.Resize((128, 128)),
+        transforms.Resize((64, 64)),
         transforms.ToTensor(),
     ])
 
     # datasets
-    train_dataset = H2Dataset(dataset_folder, "train.txt", transform)
-    test_dataset = H2Dataset(dataset_folder, "test.txt", transform)
+    train_dataset = H2Dataset(dataset_folder, "train copy.txt", transform)
+    test_dataset = H2Dataset(dataset_folder, "test copy.txt", transform)
 
     # loaders
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False
+    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = SimpleCNN().to(device)
+    model = SimpleCNN(num_classes=len(train_dataset.classes)).to(device)
 
     print(f"Training on {device}")
 
