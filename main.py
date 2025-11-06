@@ -4,7 +4,6 @@ import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
-import matplotlib.pyplot as plt
 import time
 
 
@@ -84,7 +83,7 @@ class SimpleCNN(nn.Module):
         # define CNN fully connected layer
         self.classifier = nn.Sequential(
             nn.Flatten(),
-            nn.Linear(128 * 16 * 16, 256),
+            nn.Linear(128 * 8 * 8, 256),
             nn.ReLU(),
             nn.Dropout(0.3),
             nn.Linear(256, num_classes)
@@ -133,25 +132,6 @@ def train_model(model, train_loader, test_loader, device, epochs, lr):
 
         print(f"  Epoch [{epoch+1}/{epochs}]  Loss: {avg_loss:.4f}  Test Acc: {acc:.2f}%")
 
-    # Plot training curves
-    plt.figure(figsize=(10, 4))
-    plt.subplot(1, 2, 1)
-    plt.plot(train_losses, label='Training Loss')
-    plt.xlabel('Epoch')
-    plt.ylabel('Loss')
-    plt.title('Training Loss')
-    plt.legend()
-
-    plt.subplot(1, 2, 2)
-    plt.plot(test_accuracies, label='Test Accuracy')
-    plt.xlabel('Epoch')
-    plt.ylabel('Accuracy (%)')
-    plt.title('Test Accuracy')
-    plt.legend()
-
-    plt.tight_layout()
-    plt.show()
-
     torch.save(model.state_dict(), "cnn_model.pth")
     print("Model saved as cnn_model.pth")
 
@@ -179,12 +159,12 @@ if __name__ == "__main__":
     # configure hyperparameters
     dataset_folder = "h2-data"
     batch_size = 16
-    num_epochs = 10
+    num_epochs = 20
     learning_rate = 0.001
 
     # configure transforms
     transform = transforms.Compose([
-        transforms.Resize((128, 128)),
+        transforms.Resize((64, 64)),
         transforms.ToTensor(),
     ])
 

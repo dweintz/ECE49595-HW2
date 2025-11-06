@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# Exit immediately if a command exits with a non-zero status
+set -e
+
+# Name of the virtual environment
+VENV_DIR=".venv"
+
+# Python executable (adjust if needed)
+PYTHON=python3
+
+# Create virtual environment if it doesn't exist
+if [ ! -d "$VENV_DIR" ]; then
+    echo "Creating virtual environment..."
+    $PYTHON -m venv $VENV_DIR
+fi
+
+# Activate virtual environment
+echo "Activating virtual environment..."
+source $VENV_DIR/bin/activate
+
+# Upgrade pip
+echo "Upgrading pip..."
+pip install --upgrade pip
+
+# Install dependencies
+echo "Installing dependencies..."
+pip install -r requirements.txt
+
+# Run the main script
+echo "Running main.py..."
+python main.py
+
+# Deactivate venv after running
+deactivate
