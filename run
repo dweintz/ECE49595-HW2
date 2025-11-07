@@ -6,10 +6,28 @@ set -e
 # Name of the virtual environment
 VENV_DIR=".venv"
 
-# Python executable (adjust if needed)
+# Python executable
 PYTHON=python3
 
-# Create virtual environment if it doesn't exist
+# Dataset folder and zip
+DATA_FOLDER="h2-data"
+DATA_ZIP="h2-data.zip"
+
+# Check for dataset
+if [ -d "$DATA_FOLDER" ]; then
+    echo "Found dataset folder: $DATA_FOLDER"
+elif [ -f "$DATA_ZIP" ]; then
+    echo "Found dataset zip: $DATA_ZIP"
+    echo "Unzipping dataset..."
+    unzip -q "$DATA_ZIP" -d .
+    echo "Unzip complete. Folder created: $DATA_FOLDER"
+else
+    echo "Error: Neither '$DATA_FOLDER' folder nor '$DATA_ZIP' file found."
+    echo "Please ensure your dataset is available before running."
+    exit 1
+fi
+
+# Setup virtual environment
 if [ ! -d "$VENV_DIR" ]; then
     echo "Creating virtual environment..."
     $PYTHON -m venv $VENV_DIR
